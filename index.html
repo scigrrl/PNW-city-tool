@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PNW Relocation Decision Tool – Multi-Family</title>
+  <style>
+    :root {
+      --bg: #f5f5fb;
+      --card: #ffffff;
+      --accent: #4f46e5;
+      --accent-soft: #e0e7ff;
+      --border: #d4d4dd;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+    h1 { font-size: 28px; margin-bottom: 4px; }
+    h2 { font-size: 20px; margin: 12px 0; }
+    p { color: var(--text-muted); }
+    .pill {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+    }
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .grid-4 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      button {
+        width: 100%;
+        margin-right: 0;
+      }
+    }
+
+    /* Better mobile stacking */
+    @media (max-width: 1000px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Slightly tighter padding on small screens */
+    @media (max-width: 520px) {
+      body { padding: 12px; }
+      .card { padding: 14px; border-radius: 12px; }
+      h1 { font-size: 22px; }
+      h2 { font-size: 18px; }
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    select, input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      background: #fff;
+    }
+    .city-title {
+      font-weight: 600;
+      margin: 8px 0 4px;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 12px 0 6px;
+      color: var(--text-main);
+    }
+    .small {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    button {
+      padding: 9px 14px;
+      font-size: 14px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      margin-right: 6px;
+      margin-top: 8px;
+    }
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    button:hover { opacity: 0.95; }
+    #results, #neighborhoodResults, #familyResults {
+      font-size: 14px;
+      white-space: pre-line;
+      margin-top: 8px;
+    }
+    .result-highlight {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #ecfeff;
+      border: 1px solid #22c1c3;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    /* Adaptive tab row: scroll first, wrap if truly necessary */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+
+      flex-wrap: wrap;                 /* allow wrapping */
+      overflow-x: auto;                /* allow scrolling */
+      -webkit-overflow-scrolling: touch;
+
+      max-width: 100%;
+    }
+
+    /* Prevent tabs from collapsing too small */
+    .tab-btn,
+    .notes-tab-btn {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    /* On very small screens, encourage wrapping instead of scrolling */
+    @media (max-width: 420px) {
+      .tabs {
+        overflow-x: visible;
+      }
+    }
+
+    .tabs {
+      row-gap: 8px;   /* space between wrapped rows */
+    }
+
+
+    .tab-btn {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .hidden { display: none; }
+    .family-label { font-weight: 600; font-size: 13px; margin-top: 6px; }
+  .notes-panel {
+  margin-top: 8px;
+}
+
+.notes-panel textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    resize: vertical;
+}
+.notes-tab-btn {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  cursor: pointer;
+  background: #e5e7eb;
+  color: #111827;
+}
+.notes-tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+</style>
+</head>
+<body>
+
+<h1>PNW Relocation Decision Tool</h1>
+<p>
+  Score each city and neighborhood. You can tweak the 1–5 scores
+  as you visit and the tool will suggest the best overall fit.
+</p>
+<div>
+  <span class="pill">Beaverton, OR</span>
+  <span class="pill">Hillsboro, OR</span>
+  <span class="pill">Vancouver, WA</span>
+  <span class="pill">Tigard, OR</span>
+  <span class="pill">Sherwood, OR</span>
+  <span class="pill">Ridgefield, WA</span>
+  <span class="pill">Forest Grove, OR</span>
+  <span class="pill">Tualatin, OR</span>
+</div>
+
+<div class="layout">
+  <!-- LEFT COLUMN: CITY & NEIGHBORHOOD SCORING -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <h2>City-Level Scores</h2>
+        <span class="badge">1 = poor · 5 = excellent</span>
+      </div>
+      <p class="small">These should reflect your collective sense after visiting each city.</p>
+
+      <div class="section-title">Weighting (what matters most?)</div>
+      <div class="grid-4">
+        <div>
+          <label>Inclusivity weight</label>
+          <input type="number" id="w_incl" min="1" max="5" value="5" />
+        </div>
+        <div>
+          <label>Schools weight</label>
+          <input type="number" id="w_sped" min="1" max="5" value="5" />
+        </div>
+        <div>
+          <label>Housing weight</label>
+          <input type="number" id="w_house" min="1" max="5" value="4" />
+        </div>
+        <div>
+          <label>Safety weight</label>
+          <input type="number" id="w_safe" min="1" max="5" value="4" />
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-top:12px;">
+        <div>
+          <div class="city-title">Beaverton</div>
+          <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Inclusivity</label>
+          <select id="b_incl"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Schools</label>
+          <select id="b_sped"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Housing</label>
+          <select id="b_house"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          <label>Safety</label>
+          <select id="b_safe"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+        </div>
+        <div>
+          <div class="city-title">Hillsboro</div>
+          <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Inclusivity</label>
+          <select id="h_incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Schools</label>
+          <select id="h_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Housing</label>
+          <select id="h_house"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Safety</label>
+          <select id="h_safe"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+        </div>
+        <div>
+          <div class="city-title">Vancouver</div>
+          <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Inclusivity</label>
+          <select id="v_incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Schools</label>
+          <select id="v_sped"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          <label>Housing</label>
+          <select id="v_house"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Safety</label>
+          <select id="v_safe"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+        </div>
+        <div>
+          <div class="city-title">Tigard</div>
+                    <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Inclusivity</label>
+          <select id="t_incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Schools</label>
+          <select id="t_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Housing</label>
+          <select id="t_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Safety</label>
+          <select id="t_safe"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+        </div>
+        <div>
+          <div class="city-title">Sherwood</div>
+                    <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Inclusivity</label>
+          <select id="s_incl"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          <label>Schools</label>
+          <select id="s_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Housing</label>
+          <select id="s_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Safety</label>
+          <select id="s_safe"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+        </div>
+        <div>
+          <div class="city-title">Ridgefield</div>
+          <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Inclusivity</label>
+          <select id="r_incl"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          <label>Schools</label>
+          <select id="r_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Housing</label>
+          <select id="r_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Safety</label>
+          <select id="r_safe"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+        </div>
+        <div>
+          <div class="city-title">Forest Grove</div>
+          <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Inclusivity</label>
+          <select id="fg_incl"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          <label>Schools</label>
+          <select id="fg_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Housing</label>
+          <select id="fg_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Safety</label>
+          <select id="fg_safe"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+        </div>
+        <div>
+          <div class="city-title">Tualatin</div>
+          <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Inclusivity</label>
+          <select id="tu_incl"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          <label>Schools</label>
+          <select id="tu_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Housing</label>
+          <select id="tu_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          <label>Safety</label>
+          <select id="tu_safe"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+        </div>
+        </div>
+        
+        <button onclick="calculateCities()">Calculate Best City</button>
+        <div id="results" class="result-highlight"></div>
+      </div>
+ 
+<div class="card">
+  <div class="card-header">
+    <h2>Add Your Own Cities & Neighborhoods</h2>
+    <span class="badge">Custom entries</span>
+  </div>
+  <p class="small">Add cities + neighborhoods you want to score. Custom items are saved in this browser.</p>
+
+  <div class="grid-3">
+    <div>
+      <label>New city name</label>
+      <input type="text" id="customCityName" placeholder="e.g., Camas" />
+      <button type="button" class="secondary" onclick="addCustomCity()">Add City</button>
+      <div class="small" id="customCityStatus"></div>
+    </div>
+
+    <div>
+      <label>Add neighborhood to city</label>
+      <select id="customCitySelect"></select>
+      <label>Neighborhood name</label>
+      <input type="text" id="customNeighborhoodName" placeholder="e.g., Downtown Camas" />
+      <button type="button" class="secondary" onclick="addCustomNeighborhood()">Add Neighborhood</button>
+      <div class="small" id="customNeighborhoodStatus"></div>
+    </div>
+
+    <div>
+      <label>Saved custom list</label>
+      <div class="small" id="customListPreview"></div>
+      <button type="button" class="secondary" onclick="clearCustomCities()">Clear custom cities</button>
+    </div>
+  </div>
+</div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Neighborhood-Level Scoring</h2>
+        <span class="badge">Zoom in within each city</span>
+      </div>
+      <p class="small">Choose a city, then score neighborhoods you actually visit. You can reuse categories or tweak scores per neighborhood.</p>
+
+      <div class="section-title">Choose City</div>
+      <div class="tabs" id="neighborhoodTabs">
+        <button class="tab-btn active" data-city="beaverton" onclick="switchCityTab(event)">Beaverton</button>
+        <button class="tab-btn" data-city="hillsboro" onclick="switchCityTab(event)">Hillsboro</button>
+        <button class="tab-btn" data-city="vancouver" onclick="switchCityTab(event)">Vancouver</button>
+        <button class="tab-btn" data-city="tigard" onclick="switchCityTab(event)">Tigard</button>
+        <button class="tab-btn" data-city="sherwood" onclick="switchCityTab(event)">Sherwood</button>
+        <button class="tab-btn" data-city="ridgefield" onclick="switchCityTab(event)">Ridgefield</button>
+        <button class="tab-btn" data-city="forestgrove" onclick="switchCityTab(event)">Forest Grove</button>
+        <button class="tab-btn" data-city="tualatin" onclick="switchCityTab(event)">Tualatin</button>
+        <button class="tab-btn" data-city="custom" onclick="switchCityTab(event)">Custom</button>
+      </div>
+
+      <!-- Beaverton neighborhoods -->
+      <div id="tab-beaverton">
+        <div class="section-title">Beaverton Neighborhoods</div>
+        <div class="grid-3">
+          <div>
+            <div class="city-title">Cedar Hills</div>
+            <label>Overall feel</label>
+            <select data-city="beaverton" data-neighborhood="cedar" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="beaverton" data-neighborhood="cedar" data-field="incl">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Schools perception</label>
+            <select data-city="beaverton" data-neighborhood="cedar" data-field="sped">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Housing fit</label>
+            <select data-city="beaverton" data-neighborhood="cedar" data-field="house">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Sensory environment</label>
+            <select data-city="beaverton" data-neighborhood="cedar" data-field="sense">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="city-title">Sexton Mountain</div>
+            <select data-city="beaverton" data-neighborhood="sexton" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="beaverton" data-neighborhood="sexton" data-field="incl">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Schools perception</label>
+            <select data-city="beaverton" data-neighborhood="sexton" data-field="sped">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Housing fit</label>
+            <select data-city="beaverton" data-neighborhood="sexton" data-field="house">
+              <option>3</option><option>4</option><option>5</option><option>2</option><option>1</option>
+            </select>
+            <label>Sensory environment</label>
+            <select data-city="beaverton" data-neighborhood="sexton" data-field="sense">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="city-title">Progress Ridge / Murrayhill</div>
+            <select data-city="beaverton" data-neighborhood="progress" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="beaverton" data-neighborhood="progress" data-field="incl">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Schools perception</label>
+            <select data-city="beaverton" data-neighborhood="progress" data-field="sped">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Housing fit</label>
+            <select data-city="beaverton" data-neighborhood="progress" data-field="house">
+              <option>3</option><option>4</option><option>5</option><option>2</option><option>1</option>
+            </select>
+            <label>Sensory environment</label>
+            <select data-city="beaverton" data-neighborhood="progress" data-field="sense">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hillsboro neighborhoods -->
+      <div id="tab-hillsboro" class="hidden">
+        <div class="section-title">Hillsboro Neighborhoods</div>
+        <div class="grid-3">
+          <div>
+            <div class="city-title">Orenco Station</div>
+            <select data-city="hillsboro" data-neighborhood="orenco" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="hillsboro" data-neighborhood="orenco" data-field="incl"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="hillsboro" data-neighborhood="orenco" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="hillsboro" data-neighborhood="orenco" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="hillsboro" data-neighborhood="orenco" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Jackson School area</div>
+            <select data-city="hillsboro" data-neighborhood="jackson" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="hillsboro" data-neighborhood="jackson" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="hillsboro" data-neighborhood="jackson" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="hillsboro" data-neighborhood="jackson" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="hillsboro" data-neighborhood="jackson" data-field="sense"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">South Hillsboro</div>
+            <select data-city="hillsboro" data-neighborhood="southh" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="hillsboro" data-neighborhood="southh" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="hillsboro" data-neighborhood="southh" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="hillsboro" data-neighborhood="southh" data-field="house"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="hillsboro" data-neighborhood="southh" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vancouver neighborhoods -->
+      <div id="tab-vancouver" class="hidden">
+        <div class="section-title">Vancouver Neighborhoods</div>
+        <div class="grid-3">
+          <div>
+            <div class="city-title">Downtown / Hough</div>
+            <select data-city="vancouver" data-neighborhood="dtv" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="vancouver" data-neighborhood="dtv" data-field="incl">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Schools perception</label>
+            <select data-city="vancouver" data-neighborhood="dtv" data-field="sped">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Housing fit</label>
+            <select data-city="vancouver" data-neighborhood="dtv" data-field="house">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Sensory environment</label>
+            <select data-city="vancouver" data-neighborhood="dtv" data-field="sense">
+              <option>3</option><option>4</option><option>5</option><option>2</option><option>1</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="city-title">Felida</div>
+            <select data-city="vancouver" data-neighborhood="felida" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="vancouver" data-neighborhood="felida" data-field="incl">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Schools perception</label>
+            <select data-city="vancouver" data-neighborhood="felida" data-field="sped">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Housing fit</label>
+            <select data-city="vancouver" data-neighborhood="felida" data-field="house">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Sensory environment</label>
+            <select data-city="vancouver" data-neighborhood="felida" data-field="sense">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="city-title">Fisher's Landing East</div>
+            <select data-city="vancouver" data-neighborhood="fisher" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="vancouver" data-neighborhood="fisher" data-field="incl">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Schools perception</label>
+            <select data-city="vancouver" data-neighborhood="fisher" data-field="sped">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Housing fit</label>
+            <select data-city="vancouver" data-neighborhood="fisher" data-field="house">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Sensory environment</label>
+            <select data-city="vancouver" data-neighborhood="fisher" data-field="sense">
+              <option>4</option><option>5</option><option>3</option><option>2</option><option>1</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tigard neighborhoods -->
+      <div id="tab-tigard" class="hidden">
+        <div class="section-title">Tigard Neighborhoods</div>
+        <div class="grid-3">
+          <div>
+            <div class="city-title">Bull Mountain</div>
+            <select data-city="tigard" data-neighborhood="bull-mountain" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="tigard" data-neighborhood="bull-mountain" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="tigard" data-neighborhood="bull-mountain" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="tigard" data-neighborhood="bull-mountain" data-field="house"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="tigard" data-neighborhood="bull-mountain" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Tigard Southwest</div>
+            <select data-city="tigard" data-neighborhood="tsw" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="tigard" data-neighborhood="tsw" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="tigard" data-neighborhood="tsw" data-field="sped"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="tigard" data-neighborhood="tsw" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="tigard" data-neighborhood="tsw" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Downtown Tigard</div>
+            <select data-city="tigard" data-neighborhood="dtig" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="tigard" data-neighborhood="dtig" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="tigard" data-neighborhood="dtig" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="tigard" data-neighborhood="dtig" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="tigard" data-neighborhood="dtig" data-field="sense"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          </div>
+        </div>
+       </div>
+
+      <!-- Sherwood neighborhoods -->
+      <div id="tab-sherwood" class="hidden">
+        <div class="section-title">Sherwood Neighborhoods</div>
+        <div class="grid-3">
+          <div>
+            <div class="city-title">Old Town</div>
+            <select data-city="sherwood" data-neighborhood="oldtown" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>
+            <label>Inclusivity</label>
+            <select data-city="sherwood" data-neighborhood="oldtown" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="sherwood" data-neighborhood="oldtown" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="sherwood" data-neighborhood="oldtown" data-field="house"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="sherwood" data-neighborhood="oldtown" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Sherwood Heights</div>
+            <select data-city="sherwood" data-neighborhood="sherwoodh" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="sherwood" data-neighborhood="sherwoodh" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="sherwood" data-neighborhood="sherwoodh" data-field="sped"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="sherwood" data-neighborhood="sherwoodh" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="sherwood" data-neighborhood="sherwoodh" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Woodhaven</div>
+            <select data-city="sherwood" data-neighborhood="woodhaven" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="sherwood" data-neighborhood="woodhaven" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="sherwood" data-neighborhood="woodhaven" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="sherwood" data-neighborhood="woodhaven" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="sherwood" data-neighborhood="woodhaven" data-field="sense"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ridgefield neighborhoods -->
+      <div id="tab-ridgefield" class="hidden">
+        <div class="section-title">Ridgefield Neighborhoods</div>
+        <div class="grid-3">
+          <div>
+            <div class="city-title">Downtown</div>
+            <select data-city="ridgefield" data-neighborhood="downtown" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="ridgefield" data-neighborhood="downtown" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="ridgefield" data-neighborhood="downtown" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="ridgefield" data-neighborhood="downtown" data-field="house"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="ridgefield" data-neighborhood="downtown" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Union Ridge</div>
+            <select data-city="ridgefield" data-neighborhood="union" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="ridgefield" data-neighborhood="union" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="ridgefield" data-neighborhood="union" data-field="sped"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="ridgefield" data-neighborhood="union" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="ridgefield" data-neighborhood="union" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Heron Ridge</div>           
+            <select data-city="ridgefield" data-neighborhood="heron" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="ridgefield" data-neighborhood="heron" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="ridgefield" data-neighborhood="heron" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="ridgefield" data-neighborhood="heron" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="ridgefield" data-neighborhood="heron" data-field="sense"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forest Grove neighborhoods -->
+      <div id="tab-forestgrove" class="hidden">
+        <div class="section-title">Forest Grove Neighborhoods</div>
+        <div class="grid-3">
+          <div>
+            <div class="city-title">Downtown</div>
+            <select data-city="forestgrove" data-neighborhood="downt" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="forestgrove" data-neighborhood="downt" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="forestgrove" data-neighborhood="downt" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="forestgrove" data-neighborhood="downt" data-field="house"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="forestgrove" data-neighborhood="downt" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Gales Creek Rd</div>
+            <select data-city="forestgrove" data-neighborhood="gales" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="forestgrove" data-neighborhood="gales" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="forestgrove" data-neighborhood="gales" data-field="sped"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="forestgrove" data-neighborhood="gales" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="forestgrove" data-neighborhood="gales" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">South Forest Grove</div>
+            <select data-city="forestgrove" data-neighborhood="southfg" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="forestgrove" data-neighborhood="southfg" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="forestgrove" data-neighborhood="southfg" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="forestgrove" data-neighborhood="southfg" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="forestgrove" data-neighborhood="southfg" data-field="sense"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tualatin neighborhoods -->
+      <div id="tab-tualatin" class="hidden">
+        <div class="section-title">Tualatin Neighborhoods</div>
+        <div class="grid-3">
+          <div>
+            <div class="city-title">Tualatin North</div>
+            <select data-city="tualatin" data-neighborhood="tualatinn" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="tualatin" data-neighborhood="tualatinn" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="tualatin" data-neighborhood="tualatinn" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="tualatin" data-neighborhood="tualatinn" data-field="house"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="tualatin" data-neighborhood="tualatinn" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Tualatin South</div>
+            <select data-city="tualatin" data-neighborhood="tualatins" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="tualatin" data-neighborhood="tualatins" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="tualatin" data-neighborhood="tualatins" data-field="sped"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="tualatin" data-neighborhood="tualatins" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="tualatin" data-neighborhood="tualatins" data-field="sense"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+          <div>
+            <div class="city-title">Lake Forest</div>
+            <select data-city="tualatin" data-neighborhood="lakeforest" data-field="overall">
+              <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+            </select>            
+            <label>Inclusivity</label>
+            <select data-city="tualatin" data-neighborhood="lakeforest" data-field="incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Schools perception</label>
+            <select data-city="tualatin" data-neighborhood="lakeforest" data-field="sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Housing fit</label>
+            <select data-city="tualatin" data-neighborhood="lakeforest" data-field="house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option></select>
+            <label>Sensory environment</label>
+            <select data-city="tualatin" data-neighborhood="lakeforest" data-field="sense"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom neighborhoods (auto-filled) -->
+      <div id="tab-custom" class="hidden">
+        <div class="section-title">Custom Cities & Neighborhoods</div>
+        <p class="small">Neighborhood scoring blocks you add will appear here.</p>
+        <div id="customNeighborhoodBlocks" class="grid-3"></div>
+      </div>
+
+      <button onclick="calculateNeighborhoods()">Best Neighborhood in Active City</button>
+      <div id="neighborhoodResults" class="result-highlight"></div>
+    </div>
+  </div>
+
+<!-- RIGHT COLUMN: MULTI-FAMILY VIEW -->
+<div>
+  <div class="card">
+    <div class="card-header">
+      <h2>Multi-Family City Scores</h2>
+      <span class="badge">Any number of families</span>
+    </div>
+    <p class="small">
+      Each family can give an overall 1–5 score for each city, plus optional detailed category scores.
+      The tool blends them using per-family weights and finds the best collective fit.
+    </p>
+
+    <div class="section-title">Setup</div>
+    <label>Number of families</label>
+    <input type="number" id="family_count" min="1" max="10" value="2" />
+    <button type="button" class="secondary" onclick="buildFamilyInputs()">Add / Refresh Families</button>
+
+    <div id="familyInputs" style="margin-top:10px;"></div>
+
+    <button type="button" onclick="calculateFamilies()">Calculate Multi-Family Best City</button>
+    <div id="familyResults" class="result-highlight"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Quick Notes</h2>
+      <span class="badge">Per-city notes + autosave</span>
+    </div>
+    <p class="small">
+      Pick a city, jot down what you noticed: school vibe, sensory feel, inclusion/queer-poly comfort, kid regulation, gut feelings.
+      Notes autosave in this browser.
+    </p>
+
+    <div class="section-title">City notes</div>
+    <div class="tabs" id="notesTabs"></div>
+    <div id="notesPanels"></div>
+  </div>
+</div>
+
+<script>
+function calculateCities() {
+  const wIncl  = parseInt(document.getElementById('w_incl')?.value, 10)  || 1;
+  const wSped  = parseInt(document.getElementById('w_sped')?.value, 10)  || 1;
+  const wHouse = parseInt(document.getElementById('w_house')?.value, 10) || 1;
+  const wSafe  = parseInt(document.getElementById('w_safe')?.value, 10)  || 1;
+
+  const weightSum = wIncl + wSped + wHouse + wSafe;
+
+  const cities = [
+    { name: 'Beaverton',    overall: 'b_overall',  incl: 'b_incl',  sped: 'b_sped',  house: 'b_house',  safe: 'b_safe' },
+    { name: 'Hillsboro',    overall: 'h_overall',  incl: 'h_incl',  sped: 'h_sped',  house: 'h_house',  safe: 'h_safe' },
+    { name: 'Vancouver',    overall: 'v_overall',  incl: 'v_incl',  sped: 'v_sped',  house: 'v_house',  safe: 'v_safe' },
+    { name: 'Tigard',       overall: 't_overall',  incl: 't_incl',  sped: 't_sped',  house: 't_house',  safe: 't_safe' },
+    { name: 'Sherwood',     overall: 's_overall',  incl: 's_incl',  sped: 's_sped',  house: 's_house',  safe: 's_safe' },
+    { name: 'Ridgefield',   overall: 'r_overall',  incl: 'r_incl',  sped: 'r_sped',  house: 'r_house',  safe: 'r_safe' },
+    { name: 'Forest Grove', overall: 'fg_overall', incl: 'fg_incl', sped: 'fg_sped', house: 'fg_house', safe: 'fg_safe' },
+    { name: 'Tualatin',     overall: 'tu_overall', incl: 'tu_incl', sped: 'tu_sped', house: 'tu_house', safe: 'tu_safe' }
+  ];
+
+  const val = (id) => {
+    const el = document.getElementById(id);
+    return el ? parseInt(el.value, 10) : null;
+  };
+
+  const scores = cities.map(c => {
+    const incl  = val(c.incl);
+    const sped  = val(c.sped);
+    const house = val(c.house);
+    const safe  = val(c.safe);
+
+    const categoryScore =
+      ((incl ?? 0)  * wIncl +
+       (sped ?? 0)  * wSped +
+       (house ?? 0) * wHouse +
+       (safe ?? 0)  * wSafe) / weightSum;
+
+    const overall = val(c.overall);
+
+    // Blend: mostly categories, some overall feel (same spirit as multi-family)
+    const finalScore = (overall !== null)
+      ? (0.7 * categoryScore + 0.3 * overall)
+      : categoryScore;
+
+    return { name: c.name, score: finalScore };
+  }).sort((a, b) => b.score - a.score);
+
+  const bestScore = scores[0]?.score ?? 0;
+  const winners = scores.filter(s => s.score === bestScore).map(s => s.name);
+  const lines = scores.map(s => `${s.name}: ${s.score.toFixed(2)}`).join('\n');
+
+  document.getElementById('results').innerText =
+    `City averages (1–5)\n${lines}\n\nBest city: ${winners.join(', ')}`;
+}
+
+function switchCityTab(evt) {
+  const city = evt.target.getAttribute('data-city');
+
+  // Only affect the neighborhood tab bar
+  const tabBar = document.getElementById('neighborhoodTabs');
+  if (!tabBar) return;
+
+  tabBar.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  evt.target.classList.add('active');
+
+  const panels = [
+    'beaverton','hillsboro','vancouver','tigard','sherwood','ridgefield','forestgrove','tualatin','custom'
+  ];
+
+  panels.forEach(c => {
+    const el = document.getElementById('tab-' + c);
+    if (el) el.classList.add('hidden');
+  });
+
+  const activePanel = document.getElementById('tab-' + city);
+  if (activePanel) activePanel.classList.remove('hidden');
+}
+
+function slugify(str) {
+  return (str || '')
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '')
+    .slice(0, 18);
+}
+
+function loadCustomCities() {
+  try { return JSON.parse(localStorage.getItem('pnw_custom_cities') || '[]'); }
+  catch { return []; }
+}
+
+function saveCustomCities(list) {
+  localStorage.setItem('pnw_custom_cities', JSON.stringify(list));
+}
+
+function refreshCustomUI() {
+  const custom = loadCustomCities();
+
+  // Populate city select
+  const sel = document.getElementById('customCitySelect');
+  if (sel) {
+    sel.innerHTML = '';
+    if (custom.length === 0) {
+      sel.innerHTML = `<option value="">(Add a city first)</option>`;
+    } else {
+      custom.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.key;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+    }
+  }
+
+  // Preview
+  const preview = document.getElementById('customListPreview');
+  if (preview) {
+    preview.innerHTML = custom.length === 0
+      ? 'No custom cities yet.'
+      : custom.map(c => `<strong>${c.name}</strong>: ${(c.neighborhoods || []).join(', ') || '—'}`).join('<br>');
+  }
+
+  // Build neighborhood blocks (WITH data-* so they calculate)
+const blocks = document.getElementById('customNeighborhoodBlocks');
+if (blocks) {
+  blocks.innerHTML = '';
+
+  custom.forEach(city => {
+    (city.neighborhoods || []).forEach(n => {
+      const nKey = slugify(n);
+
+      blocks.insertAdjacentHTML('beforeend', `
+        <div>
+          <div class="city-title">${city.name} · ${n}</div>
+          
+          <label>Overall feel</label>
+          <select data-city="custom" data-neighborhood="${city.key}-${nKey}" data-field="overall">
+            <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+          </select>
+
+          <label>Inclusivity</label>
+          <select data-city="custom" data-neighborhood="${city.key}-${nKey}" data-field="incl">
+            <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+          </select>
+
+          <label>Schools perception</label>
+          <select data-city="custom" data-neighborhood="${city.key}-${nKey}" data-field="sped">
+            <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+          </select>
+
+          <label>Housing fit</label>
+          <select data-city="custom" data-neighborhood="${city.key}-${nKey}" data-field="house">
+            <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+          </select>
+
+          <label>Sensory environment</label>
+          <select data-city="custom" data-neighborhood="${city.key}-${nKey}" data-field="sense">
+            <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+          </select>
+        </div>
+      `);
+    });
+  });
+}
+}
+
+function addCustomCity() {
+  const input = document.getElementById('customCityName');
+  const status = document.getElementById('customCityStatus');
+  const name = (input?.value || '').trim();
+
+  if (!name) { if (status) status.textContent = 'Please enter a city name.'; return; }
+
+  const list = loadCustomCities();
+  const key = slugify(name);
+
+  if (!key) { if (status) status.textContent = 'City name needs letters/numbers.'; return; }
+  if (list.some(c => c.key === key)) { if (status) status.textContent = 'That city already exists.'; return; }
+
+  list.push({ key, name, neighborhoods: [] });
+  saveCustomCities(list);
+
+  if (input) input.value = '';
+  if (status) status.textContent = `Added ${name}.`;
+
+  refreshCustomUI();
+}
+
+function addCustomNeighborhood() {
+  const cityKey = document.getElementById('customCitySelect')?.value;
+  const nInput = document.getElementById('customNeighborhoodName');
+  const status = document.getElementById('customNeighborhoodStatus');
+  const nName = (nInput?.value || '').trim();
+
+  if (!cityKey) { if (status) status.textContent = 'Choose a city first.'; return; }
+  if (!nName) { if (status) status.textContent = 'Enter a neighborhood name.'; return; }
+
+  const list = loadCustomCities();
+  const city = list.find(c => c.key === cityKey);
+  if (!city) { if (status) status.textContent = 'City not found.'; return; }
+
+  city.neighborhoods = city.neighborhoods || [];
+  if (city.neighborhoods.includes(nName)) { if (status) status.textContent = 'Neighborhood already added.'; return; }
+
+  city.neighborhoods.push(nName);
+  saveCustomCities(list);
+
+  if (nInput) nInput.value = '';
+  if (status) status.textContent = `Added "${nName}" to ${city.name}.`;
+
+  refreshCustomUI();
+}
+
+function clearCustomCities() {
+  localStorage.removeItem('pnw_custom_cities');
+  refreshCustomUI();
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+  refreshCustomUI();
+  refreshQuickNotesUI();
+});
+
+function getBaseCitiesForMultiFamily() {
+  return [
+    { key: 'beaverton',   name: 'Beaverton' },
+    { key: 'hillsboro',   name: 'Hillsboro' },
+    { key: 'vancouver',   name: 'Vancouver' },
+    { key: 'tigard',      name: 'Tigard' },
+    { key: 'sherwood',    name: 'Sherwood' },
+    { key: 'ridgefield',  name: 'Ridgefield' },
+    { key: 'forestgrove', name: 'Forest Grove' },
+    { key: 'tualatin',    name: 'Tualatin' }
+  ];
+}
+
+// Neighborhood lists for built-in cities (match your Neighborhood-Level Scoring section)
+function getNeighborhoodsForCity(cityKey) {
+  const map = {
+    beaverton:   ['Cedar Hills', 'Sexton Mountain', 'Progress Ridge / Murrayhill'],
+    hillsboro:   ['Orenco Station', 'Jackson School area', 'South Hillsboro'],
+    vancouver:   ['Downtown / Hough', 'Felida', "Fisher's Landing East"],
+    tigard:      ['Bull Mountain', 'Tigard Southwest', 'Downtown Tigard'],
+    sherwood:    ['Old Town', 'Sherwood Heights', 'Woodhaven'],
+    ridgefield:  ['Downtown', 'Union Ridge', 'Heron Ridge'],
+    forestgrove: ['Downtown', 'Gales Creek Rd', 'South Forest Grove'],
+    tualatin:    ['Tualatin North', 'Tualatin South', 'Lake Forest']
+  };
+  return map[cityKey] || [];
+}
+
+// This is what Multi-Family uses (base + custom cities)
+function getAllCitiesForMultiFamily() {
+  const base = getBaseCitiesForMultiFamily();
+
+  const custom = loadCustomCities().map(c => ({
+    key: `c_${c.key}`,          // distinct key for custom cities
+    name: c.name,
+    _customKey: c.key,          // keep original
+    _neighborhoods: c.neighborhoods || []
+  }));
+
+  return base.concat(custom);
+}
+
+function buildFamilyInputs() {
+  const container = document.getElementById('familyInputs');
+  const count = parseInt(document.getElementById('family_count')?.value, 10) || 1;
+  const cities = getAllCitiesForMultiFamily();
+
+  function scoreOptions(includeBlank) {
+    let html = '';
+    if (includeBlank) html += '<option value="">–</option>';
+    for (let i = 1; i <= 5; i++) html += `<option value="${i}">${i}</option>`;
+    return html;
+  }
+
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (let f = 1; f <= count; f++) {
+    let block = `
+      <div class="card" style="margin-top:12px;">
+        <div class="card-header">
+          <div class="family-label">Family ${f}</div>
+          <span class="badge">Name + scores</span>
+        </div>
+
+        <div>
+          <label><strong>Family name (optional but helpful)</strong></label>
+          <input type="text" id="fam${f}_name" placeholder="e.g., Savage Family"
+                 style="width:100%; padding:6px 8px; border-radius:8px; border:1px solid #d4d4dd;">
+        </div>
+
+        <div class="section-title">Weights for this family (1–5)</div>
+        <div class="grid-4">
+          <div><label>Inclusivity weight</label><input type="number" id="fam${f}_w_incl" min="1" max="5" value="5" /></div>
+          <div><label>Schools weight</label><input type="number" id="fam${f}_w_sped" min="1" max="5" value="5" /></div>
+          <div><label>Housing weight</label><input type="number" id="fam${f}_w_house" min="1" max="5" value="4" /></div>
+          <div><label>Safety weight</label><input type="number" id="fam${f}_w_safe" min="1" max="5" value="4" /></div>
+        </div>
+
+        <div class="section-title">City scores for this family</div>
+        <p class="small">Overall feel is required. If category scores are filled, they will blend with the overall score.</p>
+
+        <div class="grid-3">
+    `;
+
+    cities.forEach(city => {
+      const neighborhoods = city.key.startsWith('c_')
+        ? (city._neighborhoods || [])
+        : getNeighborhoodsForCity(city.key);
+
+      block += `
+        <div>
+          <div class="city-title">${city.name}</div>
+
+          <label>Overall feel (1–5)</label>
+          <select id="fam${f}_${city.key}_overall">${scoreOptions(false)}</select>
+
+          <label class="small">Inclusivity (optional)</label>
+          <select id="fam${f}_${city.key}_incl">${scoreOptions(true)}</select>
+
+          <label class="small">Schools (optional)</label>
+          <select id="fam${f}_${city.key}_sped">${scoreOptions(true)}</select>
+
+          <label class="small">Housing (optional)</label>
+          <select id="fam${f}_${city.key}_house">${scoreOptions(true)}</select>
+
+          <label class="small">Safety (optional)</label>
+          <select id="fam${f}_${city.key}_safe">${scoreOptions(true)}</select>
+      `;
+
+      if (neighborhoods.length) {
+        block += `<div class="small" style="margin-top:8px;"><strong>Neighborhood overall (optional)</strong></div>`;
+        neighborhoods.forEach(nName => {
+          const nKey = slugify(nName);
+          block += `
+            <label class="small">${nName}</label>
+            <select id="fam${f}_${city.key}_n_${nKey}_overall">
+              ${scoreOptions(true)}
+            </select>
+          `;
+        });
+      }
+
+      block += `</div>`;
+    });
+
+    block += `
+        </div>
+      </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', block);
+  }
+}
+
+function notesKeyForCity(cityKey) {
+  return `pnw_notes_${cityKey}`;
+}
+
+function loadNote(cityKey) {
+  return localStorage.getItem(notesKeyForCity(cityKey)) || '';
+}
+
+function saveNote(cityKey, text) {
+  localStorage.setItem(notesKeyForCity(cityKey), text || '');
+}
+
+function getBaseCitiesForNotes() {
+  return [
+    { key: 'beaverton',   label: 'Beaverton' },
+    { key: 'hillsboro',   label: 'Hillsboro' },
+    { key: 'vancouver',   label: 'Vancouver' },
+    { key: 'tigard',      label: 'Tigard' },
+    { key: 'sherwood',    label: 'Sherwood' },
+    { key: 'ridgefield',  label: 'Ridgefield' },
+    { key: 'forestgrove', label: 'Forest Grove' },
+    { key: 'tualatin',    label: 'Tualatin' }
+  ];
+}
+
+function getAllCitiesForNotes() {
+  const base = getBaseCitiesForNotes();
+
+  // Each custom city becomes its own Notes tab
+  const custom = loadCustomCities().map(c => ({
+    key: `c_${c.key}`,
+    label: c.name
+  }));
+
+// Add one umbrella tab at the end
+  return base.concat(custom).concat([{ key: 'custom', label: 'Custom' }]);
+}
+
+
+function switchNotesCity(evt) {
+  const cityKey = evt.target.getAttribute('data-city');
+
+  document.querySelectorAll('.notes-tab-btn').forEach(btn => btn.classList.remove('active'));
+  evt.target.classList.add('active');
+
+  const cities = getAllCitiesForNotes();
+  cities.forEach(c => {
+    const panel = document.getElementById('notes-' + c.key);
+    if (panel) panel.classList.add('hidden');
+  });
+
+  const activePanel = document.getElementById('notes-' + cityKey);
+  if (activePanel) activePanel.classList.remove('hidden');
+}
+
+function refreshQuickNotesUI() {
+  const tabs = document.getElementById('notesTabs');
+  const panels = document.getElementById('notesPanels');
+  if (!tabs || !panels) return;
+
+  const cities = getAllCitiesForNotes();
+
+  const currentActiveBtn = tabs.querySelector('.notes-tab-btn.active');
+  let activeKey = currentActiveBtn?.getAttribute('data-city') || (cities[0]?.key || 'beaverton');
+  if (!cities.some(c => c.key === activeKey)) activeKey = cities[0]?.key || 'beaverton';
+
+  tabs.innerHTML = cities.map(c => {
+    const activeClass = (c.key === activeKey) ? 'active' : '';
+    return `<button type="button"
+                    class="notes-tab-btn ${activeClass}"
+                    data-city="${c.key}"
+                    onclick="switchNotesCity(event)">${c.label}</button>`;
+  }).join('');
+
+  panels.innerHTML = cities.map(c => {
+    const hiddenClass = (c.key === activeKey) ? '' : 'hidden';
+    const placeholder =
+      `Notes for ${c.label}...\n` +
+      `• School vibe / IEP impressions\n` +
+      `• Sensory environment (noise, traffic, crowding)\n` +
+      `• Did we feel safe being visibly queer/poly?\n` +
+      `• Where did the kids seem happiest?`;
+
+    return `
+      <div id="notes-${c.key}" class="notes-panel ${hiddenClass}">
+        <label class="small">Notes for ${c.label}</label>
+        <textarea id="notes_${c.key}" placeholder="${placeholder.replace(/"/g, '&quot;')}"></textarea>
+      </div>
+    `;
+  }).join('');
+
+  cities.forEach(c => {
+    const ta = document.getElementById(`notes_${c.key}`);
+    if (!ta) return;
+    ta.value = loadNote(c.key);
+    ta.addEventListener('input', () => saveNote(c.key, ta.value));
+  });
+}
+
+function calculateFamilies() {
+  const count = parseInt(document.getElementById('family_count')?.value, 10) || 1;
+  const cities = getAllCitiesForMultiFamily();
+
+  const cityTotals = {};
+  cities.forEach(c => (cityTotals[c.name] = 0));
+
+  const perFamilyScores = {};
+
+  function safeParseInt(val) {
+    const n = parseInt(val, 10);
+    return Number.isNaN(n) ? null : n;
+  }
+
+  for (let f = 1; f <= count; f++) {
+    let fname = (document.getElementById(`fam${f}_name`)?.value || '').trim() || `Family ${f}`;
+    perFamilyScores[fname] = {};
+
+    const wIncl  = parseInt(document.getElementById(`fam${f}_w_incl`)?.value, 10)  || 1;
+    const wSped  = parseInt(document.getElementById(`fam${f}_w_sped`)?.value, 10)  || 1;
+    const wHouse = parseInt(document.getElementById(`fam${f}_w_house`)?.value, 10) || 1;
+    const wSafe  = parseInt(document.getElementById(`fam${f}_w_safe`)?.value, 10)  || 1;
+
+    cities.forEach(city => {
+      const overall = safeParseInt(document.getElementById(`fam${f}_${city.key}_overall`)?.value);
+      const incl    = safeParseInt(document.getElementById(`fam${f}_${city.key}_incl`)?.value);
+      const sped    = safeParseInt(document.getElementById(`fam${f}_${city.key}_sped`)?.value);
+      const house   = safeParseInt(document.getElementById(`fam${f}_${city.key}_house`)?.value);
+      const safe    = safeParseInt(document.getElementById(`fam${f}_${city.key}_safe`)?.value);
+
+      let sum = 0;
+      let weightSum = 0;
+
+      if (incl !== null)  { sum += incl  * wIncl;  weightSum += wIncl;  }
+      if (sped !== null)  { sum += sped  * wSped;  weightSum += wSped;  }
+      if (house !== null) { sum += house * wHouse; weightSum += wHouse; }
+      if (safe !== null)  { sum += safe  * wSafe;  weightSum += wSafe;  }
+
+      const categoryScore = weightSum > 0 ? (sum / weightSum) : null;
+
+      let finalScore = 0;
+      if (categoryScore !== null && overall !== null) {
+        finalScore = 0.7 * categoryScore + 0.3 * overall;
+      } else if (categoryScore !== null) {
+        finalScore = categoryScore;
+      } else if (overall !== null) {
+        finalScore = overall;
+      } else {
+        finalScore = 0;
+      }
+
+      // Optional: blend neighborhood overall averages if provided
+      const neighborhoods = city.key.startsWith('c_')
+        ? (city._neighborhoods || [])
+        : getNeighborhoodsForCity(city.key);
+
+      let nSum = 0;
+      let nCount = 0;
+
+      neighborhoods.forEach(nName => {
+        const nKey = slugify(nName);
+        const nOverall = safeParseInt(
+          document.getElementById(`fam${f}_${city.key}_n_${nKey}_overall`)?.value
+        );
+        if (nOverall !== null) {
+          nSum += nOverall;
+          nCount += 1;
+        }
+      });
+
+      if (nCount > 0) {
+        const nAvg = nSum / nCount;
+        finalScore = 0.75 * finalScore + 0.25 * nAvg;
+      }
+
+      cityTotals[city.name] += finalScore;
+      perFamilyScores[fname][city.name] = finalScore;
+    });
+  }
+
+  // Average across families
+  const cityAverages = {};
+  let maxAvg = -Infinity;
+  let winners = [];
+
+  Object.entries(cityTotals).forEach(([name, total]) => {
+    const avg = total / count;
+    cityAverages[name] = avg;
+
+    if (avg > maxAvg) {
+      maxAvg = avg;
+      winners = [name];
+    } else if (avg === maxAvg) {
+      winners.push(name);
+    }
+  });
+
+  const cityLines = Object.entries(cityAverages)
+    .map(([name, avg]) => `${name}: ${avg.toFixed(2)}`)
+    .join('\n');
+
+  const familyLines = Object.entries(perFamilyScores)
+    .map(([fname, scores]) => {
+      const parts = cities.map(c => {
+        const val = scores[c.name];
+        return `${c.name}: ${val ? val.toFixed(2) : '—'}`;
+      });
+      return `${fname}: ${parts.join(' · ')}`;
+    })
+    .join('\n');
+
+  document.getElementById('familyResults').innerText =
+    `Family averages (1–5)\n${cityLines}\n\n` +
+    `Per-family scores\n${familyLines}\n\n` +
+    `Best collective fit: ${winners.join(', ')}`;
+}
+
+function calculateNeighborhoods() {
+  const activeBtn = document.querySelector('#neighborhoodTabs .tab-btn.active');
+  if (!activeBtn) {
+    document.getElementById('neighborhoodResults').innerText = 'Please select a city tab first.';
+    return;
+  }
+
+  const city = activeBtn.getAttribute('data-city');
+  const selects = document.querySelectorAll(`select[data-city="${city}"]`);
+
+  if (!selects.length) {
+    document.getElementById('neighborhoodResults').innerText =
+      `No neighborhood scoring fields found for ${city}.`;
+    return;
+  }
+
+  // neighborhoodKey -> { catSum, catCount, overall: null|number }
+  const buckets = {};
+
+  selects.forEach(sel => {
+    const nKey = sel.dataset.neighborhood;
+    const field = sel.dataset.field;
+    const val = parseInt(sel.value, 10);
+
+    if (!nKey || Number.isNaN(val)) return;
+
+    if (!buckets[nKey]) buckets[nKey] = { catSum: 0, catCount: 0, overall: null };
+
+    if (field === 'overall') {
+      buckets[nKey].overall = val;
+    } else {
+      buckets[nKey].catSum += val;
+      buckets[nKey].catCount += 1;
+    }
+  });
+
+  const rows = Object.entries(buckets)
+    .map(([n, data]) => {
+      const categoryAvg = data.catCount ? (data.catSum / data.catCount) : 0;
+      const finalScore = (data.overall !== null)
+        ? (0.7 * categoryAvg + 0.3 * data.overall)
+        : categoryAvg;
+
+      return { neighborhood: n, avg: finalScore };
+    })
+    .sort((a, b) => b.avg - a.avg);
+
+  if (!rows.length) {
+    document.getElementById('neighborhoodResults').innerText = 'No neighborhood scores to calculate yet.';
+    return;
+  }
+
+  const lines = rows.map(r => `${prettyName(r.neighborhood)}: ${r.avg.toFixed(2)}`).join('\n');
+  const best = rows[0];
+
+  document.getElementById('neighborhoodResults').innerText =
+    `Neighborhood averages (1–5)\n${lines}\n\nBest neighborhood in ${prettyName(city)}: ${prettyName(best.neighborhood)}`;
+}
+
+function prettyName(slug) {
+  return (slug || '')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+</script>
+
+</body>
+</html>
