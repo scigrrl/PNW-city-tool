@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PNW Relocation Decision Tool – Multi-Family</title>
+  <style>
+    :root {
+      --bg: #f5f5fb;
+      --card: #ffffff;
+      --accent: #4f46e5;
+      --accent-soft: #e0e7ff;
+      --border: #d4d4dd;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+    h1 { font-size: 28px; margin-bottom: 4px; }
+    h2 { font-size: 20px; margin: 12px 0; }
+    p { color: var(--text-muted); }
+    .pill {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+    }
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    @media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) {
+      .grid-4 { grid-template-columns: 1fr; }
+      body { padding: 12px; }
+      .card { padding: 14px; border-radius: 12px; }
+      h1 { font-size: 22px; }
+      h2 { font-size: 18px; }
+      button { width: 100%; margin-right: 0; }
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    select, input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      background: #fff;
+    }
+    .city-title {
+      font-weight: 600;
+      margin: 8px 0 4px;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 12px 0 6px;
+      color: var(--text-main);
+    }
+    .small {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    button {
+      padding: 9px 14px;
+      font-size: 14px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      margin-right: 6px;
+      margin-top: 8px;
+    }
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    button:hover { opacity: 0.95; }
+    #results, #neighborhoodResults, #familyResults {
+      font-size: 14px;
+      white-space: pre-line;
+      margin-top: 8px;
+    }
+    .result-highlight {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #ecfeff;
+      border: 1px solid #22c1c3;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .hidden { display: none; }
+
+    /* Criteria UI */
+    .criteria-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 8px;
+      align-items: start;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+    .criteria-row .left {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .criteria-row input[type="checkbox"] { transform: translateY(1px); }
+    .criteria-row .right {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .criteria-inline {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .criteria-inline label {
+      margin: 0;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    /* Notes */
+    .notes-panel { margin-top: 8px; }
+    .notes-panel textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      resize: vertical;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+      row-gap: 8px;
+    }
+    .notes-tab-btn {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .notes-tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<h1>PNW Relocation Decision Tool</h1>
+<p>
+  Score cities and (your own) neighborhoods. Customize the criteria so this doesn’t turn into a 400-dropdown monster.
+</p>
+<div>
+  <span class="pill">Beaverton, OR</span>
+  <span class="pill">Hillsboro, OR</span>
+  <span class="pill">Vancouver, WA</span>
+  <span class="pill">Tigard, OR</span>
+  <span class="pill">Sherwood, OR</span>
+  <span class="pill">Ridgefield, WA</span>
+  <span class="pill">Forest Grove, OR</span>
+  <span class="pill">Tualatin, OR</span>
+</div>
+
+<div class="layout">
+  <!-- LEFT COLUMN -->
+  <div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>City-Level Scores</h2>
+        <span class="badge">1 = poor · 5 = excellent</span>
+      </div>
+      <p class="small">Customize criteria + weights, then score each city. (Overall feel is always used.)</p>
+
+      <!-- (1) CRITERIA BLOCK + TWO CUSTOM CRITERIA -->
+      <div class="section-title">Criteria (toggle + weights)</div>
+      <div class="small">Tip: uncheck a criterion to remove it from scoring (and hide its inputs).</div>
+
+      <div class="criteria-row">
+        <div class="left">
+         <span style="font-size:12px; font-weight:600;">Overall feel</span>
+         <span class="small">(always included)</span>
+        </div>
+        <div class="right">
+            <label>Weight (1–5)</label>
+            <input type="number" id="w_overall" min="1" max="5" value="3" />
+        </div>
+     </div>
+<div id="criteriaBlock" style="display:grid; gap:10px; margin-top:8px;">
+        <!-- Built-ins -->
+        <div class="criteria-row">
+          <div class="left">
+            <label style="margin:0;">
+              <input type="checkbox" id="crit_incl" data-crit="incl" checked />
+              Inclusivity
+            </label>
+          </div>
+          <div class="right">
+            <label>Weight (1–5)</label>
+            <input type="number" id="w_incl" min="1" max="5" value="5" />
+          </div>
+        </div>
+
+        <div class="criteria-row">
+          <div class="left">
+            <label style="margin:0;">
+              <input type="checkbox" id="crit_sped" data-crit="sped" checked />
+              Schools
+            </label>
+          </div>
+          <div class="right">
+            <label>Weight (1–5)</label>
+            <input type="number" id="w_sped" min="1" max="5" value="5" />
+          </div>
+        </div>
+
+        <div class="criteria-row">
+          <div class="left">
+            <label style="margin:0;">
+              <input type="checkbox" id="crit_house" data-crit="house" checked />
+              Housing fit
+            </label>
+          </div>
+          <div class="right">
+            <label>Weight (1–5)</label>
+            <input type="number" id="w_house" min="1" max="5" value="4" />
+          </div>
+        </div>
+
+        <div class="criteria-row">
+          <div class="left">
+            <label style="margin:0;">
+              <input type="checkbox" id="crit_safe" data-crit="safe" checked />
+              Safety
+            </label>
+          </div>
+          <div class="right">
+            <label>Weight (1–5)</label>
+            <input type="number" id="w_safe" min="1" max="5" value="4" />
+          </div>
+        </div>
+
+        <!-- Custom criteria 1 -->
+        <div class="criteria-row">
+          <div class="left">
+            <label style="margin:0;">
+              <input type="checkbox" id="crit_c1" data-crit="c1" />
+              <span id="c1_label_inline">Custom criterion 1</span>
+            </label>
+          </div>
+          <div class="right">
+            <label>Custom name</label>
+            <input type="text" id="c1_name" placeholder="e.g., Commute / Access to woods" />
+            <label>Weight (1–5)</label>
+            <input type="number" id="w_c1" min="1" max="5" value="3" />
+          </div>
+        </div>
+
+        <!-- Custom criteria 2 -->
+        <div class="criteria-row">
+          <div class="left">
+            <label style="margin:0;">
+              <input type="checkbox" id="crit_c2" data-crit="c2" />
+              <span id="c2_label_inline">Custom criterion 2</span>
+            </label>
+          </div>
+          <div class="right">
+            <label>Custom name</label>
+            <input type="text" id="c2_name" placeholder="e.g., Healthcare access / Vibe" />
+            <label>Weight (1–5)</label>
+            <input type="number" id="w_c2" min="1" max="5" value="3" />
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">City scores</div>
+
+      <div class="grid-4" style="margin-top:12px;">
+        <!-- Beaverton -->
+        <div>
+          <div class="city-title">Beaverton</div>
+          <label>Overall feel</label>
+          <select id="b_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+
+          <div class="crit-field" data-crit="incl">
+            <label>Inclusivity</label>
+            <select id="b_incl"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="sped">
+            <label>Schools</label>
+            <select id="b_sped"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="house">
+            <label>Housing</label>
+            <select id="b_house"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="safe">
+            <label>Safety</label>
+            <select id="b_safe"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c1">
+            <label data-crit-label="c1">Custom criterion 1</label>
+            <select id="b_c1"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c2">
+            <label data-crit-label="c2">Custom criterion 2</label>
+            <select id="b_c2"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+        </div>
+
+        <!-- Hillsboro -->
+        <div>
+          <div class="city-title">Hillsboro</div>
+          <label>Overall feel</label>
+          <select id="h_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+
+          <div class="crit-field" data-crit="incl">
+            <label>Inclusivity</label>
+            <select id="h_incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="sped">
+            <label>Schools</label>
+            <select id="h_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="house">
+            <label>Housing</label>
+            <select id="h_house"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="safe">
+            <label>Safety</label>
+            <select id="h_safe"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c1">
+            <label data-crit-label="c1">Custom criterion 1</label>
+            <select id="h_c1"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c2">
+            <label data-crit-label="c2">Custom criterion 2</label>
+            <select id="h_c2"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+        </div>
+
+        <!-- Vancouver -->
+        <div>
+          <div class="city-title">Vancouver</div>
+          <label>Overall feel</label>
+          <select id="v_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+
+          <div class="crit-field" data-crit="incl">
+            <label>Inclusivity</label>
+            <select id="v_incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="sped">
+            <label>Schools</label>
+            <select id="v_sped"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="house">
+            <label>Housing</label>
+            <select id="v_house"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="safe">
+            <label>Safety</label>
+            <select id="v_safe"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c1">
+            <label data-crit-label="c1">Custom criterion 1</label>
+            <select id="v_c1"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c2">
+            <label data-crit-label="c2">Custom criterion 2</label>
+            <select id="v_c2"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+        </div>
+
+        <!-- Tigard -->
+        <div>
+          <div class="city-title">Tigard</div>
+          <label>Overall feel</label>
+          <select id="t_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+
+          <div class="crit-field" data-crit="incl">
+            <label>Inclusivity</label>
+            <select id="t_incl"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="sped">
+            <label>Schools</label>
+            <select id="t_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="house">
+            <label>Housing</label>
+            <select id="t_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="safe">
+            <label>Safety</label>
+            <select id="t_safe"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c1">
+            <label data-crit-label="c1">Custom criterion 1</label>
+            <select id="t_c1"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c2">
+            <label data-crit-label="c2">Custom criterion 2</label>
+            <select id="t_c2"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+        </div>
+
+        <!-- Sherwood -->
+        <div>
+          <div class="city-title">Sherwood</div>
+          <label>Overall feel</label>
+          <select id="s_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+
+          <div class="crit-field" data-crit="incl">
+            <label>Inclusivity</label>
+            <select id="s_incl"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="sped">
+            <label>Schools</label>
+            <select id="s_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="house">
+            <label>Housing</label>
+            <select id="s_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="safe">
+            <label>Safety</label>
+            <select id="s_safe"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c1">
+            <label data-crit-label="c1">Custom criterion 1</label>
+            <select id="s_c1"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c2">
+            <label data-crit-label="c2">Custom criterion 2</label>
+            <select id="s_c2"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+        </div>
+
+        <!-- Ridgefield -->
+        <div>
+          <div class="city-title">Ridgefield</div>
+          <label>Overall feel</label>
+          <select id="r_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+
+          <div class="crit-field" data-crit="incl">
+            <label>Inclusivity</label>
+            <select id="r_incl"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="sped">
+            <label>Schools</label>
+            <select id="r_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="house">
+            <label>Housing</label>
+            <select id="r_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="safe">
+            <label>Safety</label>
+            <select id="r_safe"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c1">
+            <label data-crit-label="c1">Custom criterion 1</label>
+            <select id="r_c1"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c2">
+            <label data-crit-label="c2">Custom criterion 2</label>
+            <select id="r_c2"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+        </div>
+
+        <!-- Forest Grove -->
+        <div>
+          <div class="city-title">Forest Grove</div>
+          <label>Overall feel</label>
+          <select id="fg_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+
+          <div class="crit-field" data-crit="incl">
+            <label>Inclusivity</label>
+            <select id="fg_incl"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="sped">
+            <label>Schools</label>
+            <select id="fg_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="house">
+            <label>Housing</label>
+            <select id="fg_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="safe">
+            <label>Safety</label>
+            <select id="fg_safe"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c1">
+            <label data-crit-label="c1">Custom criterion 1</label>
+            <select id="fg_c1"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c2">
+            <label data-crit-label="c2">Custom criterion 2</label>
+            <select id="fg_c2"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+        </div>
+
+        <!-- Tualatin -->
+        <div>
+          <div class="city-title">Tualatin</div>
+          <label>Overall feel</label>
+          <select id="tu_overall"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+
+          <div class="crit-field" data-crit="incl">
+            <label>Inclusivity</label>
+            <select id="tu_incl"><option>3</option><option>4</option><option>5</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="sped">
+            <label>Schools</label>
+            <select id="tu_sped"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="house">
+            <label>Housing</label>
+            <select id="tu_house"><option>4</option><option>5</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="safe">
+            <label>Safety</label>
+            <select id="tu_safe"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c1">
+            <label data-crit-label="c1">Custom criterion 1</label>
+            <select id="tu_c1"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+
+          <div class="crit-field" data-crit="c2">
+            <label data-crit-label="c2">Custom criterion 2</label>
+            <select id="tu_c2"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="criteria-inline" style="margin-top:10px;">
+        <button type="button" onclick="calculateCities()">Calculate Best City</button>
+        <button type="button" class="secondary" onclick="exportAllDataTxt()">Export all data (.txt)</button>
+      </div>
+
+      <div id="results" class="result-highlight"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Add Your Own Cities & Neighborhoods</h2>
+        <span class="badge">Custom entries</span>
+      </div>
+      <p class="small">Add cities + neighborhoods you want to score. Custom items are saved in this browser.</p>
+
+      <div class="grid-3">
+        <div>
+          <label>New city name</label>
+          <input type="text" id="customCityName" placeholder="e.g., Camas" />
+          <button type="button" class="secondary" onclick="addCustomCity()">Add City</button>
+          <div class="small" id="customCityStatus"></div>
+        </div>
+
+        <div>
+          <label>Add neighborhood to city</label>
+          <select id="customCitySelect"></select>
+          <label>Neighborhood name</label>
+          <input type="text" id="customNeighborhoodName" placeholder="e.g., Downtown Camas" />
+          <button type="button" class="secondary" onclick="addCustomNeighborhood()">Add Neighborhood</button>
+          <div class="small" id="customNeighborhoodStatus"></div>
+        </div>
+
+        <div>
+          <label>Saved custom list</label>
+          <div class="small" id="customListPreview"></div>
+          <button type="button" class="secondary" onclick="clearCustomCities()">Clear custom cities</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- (2) REMOVE PRE-DETERMINED NEIGHBORHOODS -->
+    <!-- (3) KEEP CUSTOM NEIGHBORHOOD OPTIONS -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Neighborhood Scoring</h2>
+        <span class="badge">Custom only</span>
+      </div>
+      <p class="small">
+        No pre-loaded neighborhoods. Add your own above, then score them here using the same criteria you enabled for cities.
+      </p>
+
+      <div class="section-title">Custom neighborhoods</div>
+      <div id="customNeighborhoodBlocks" class="grid-3"></div>
+
+      <button type="button" onclick="calculateNeighborhoods()">Best Neighborhood (across custom list)</button>
+      <div id="neighborhoodResults" class="result-highlight"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Multi-Family City Scores</h2>
+        <span class="badge">Any number of families</span>
+      </div>
+      <p class="small">
+        Each family can give an overall 1–5 score for each city, plus optional detailed category scores.
+        The tool blends them using per-family weights and finds the best collective fit.
+      </p>
+
+      <div class="section-title">Setup</div>
+      <label>Number of families</label>
+      <input type="number" id="family_count" min="1" max="10" value="2" />
+      <button type="button" class="secondary" onclick="buildFamilyInputs()">Add / Refresh Families</button>
+
+      <div id="familyInputs" style="margin-top:10px;"></div>
+
+      <button type="button" onclick="calculateFamilies()">Calculate Multi-Family Best City</button>
+      <div id="familyResults" class="result-highlight"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Quick Notes</h2>
+        <span class="badge">Per-city notes + autosave</span>
+      </div>
+      <p class="small">
+        Pick a city, jot down what you noticed: school vibe, sensory feel, inclusion/queer-poly comfort, kid regulation, gut feelings.
+        Notes autosave in this browser.
+      </p>
+
+      <div class="section-title">City notes</div>
+      <div class="tabs" id="notesTabs"></div>
+      <div id="notesPanels"></div>
+
+      <!-- (4) SAVE ANY DATA TO A TEXT/NOTE DOCUMENT -->
+      <div class="section-title">Backup</div>
+      <p class="small">Download a single .txt “note document” containing your scores, custom list, and notes.</p>
+      <button type="button" class="secondary" onclick="exportAllDataTxt()">Export all data (.txt)</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* -----------------------------
+   Criteria: enabled + naming
+------------------------------*/
+function getCustomNames() {
+  const c1 = (document.getElementById('c1_name')?.value || '').trim();
+  const c2 = (document.getElementById('c2_name')?.value || '').trim();
+  return {
+    c1: c1 || 'Custom criterion 1',
+    c2: c2 || 'Custom criterion 2'
+  };
+}
+
+function enabledCriteriaKeys() {
+  const keys = [];
+  ['incl','sped','house','safe','c1','c2'].forEach(k => {
+    const cb = document.getElementById(`crit_${k}`);
+    if (cb && cb.checked) keys.push(k);
+  });
+  return keys;
+}
+
+function criteriaLabel(key) {
+  const custom = getCustomNames();
+  const map = {
+    incl: 'Inclusivity',
+    sped: 'Schools',
+    house: 'Housing fit',
+    safe: 'Safety',
+    c1: custom.c1,
+    c2: custom.c2
+  };
+  return map[key] || key;
+}
+
+function getWeight(key) {
+  const idMap = {
+    overall: 'w_overall',
+    incl: 'w_incl',
+    sped: 'w_sped',
+    house: 'w_house',
+    safe: 'w_safe',
+    c1: 'w_c1',
+    c2: 'w_c2'
+  };
+  const el = document.getElementById(idMap[key]);
+  const n = parseInt(el?.value, 10);
+  return Number.isNaN(n) ? 1 : n;
+}
+
+function refreshCriteriaUI() {
+  // Update inline labels
+  const names = getCustomNames();
+  const c1Inline = document.getElementById('c1_label_inline');
+  const c2Inline = document.getElementById('c2_label_inline');
+  if (c1Inline) c1Inline.textContent = names.c1;
+  if (c2Inline) c2Inline.textContent = names.c2;
+
+  // Update all <label data-crit-label="c1|c2">
+  document.querySelectorAll('[data-crit-label="c1"]').forEach(el => el.textContent = names.c1);
+  document.querySelectorAll('[data-crit-label="c2"]').forEach(el => el.textContent = names.c2);
+
+  // Hide/show crit fields by checkbox state
+  ['incl','sped','house','safe','c1','c2'].forEach(k => {
+    const cb = document.getElementById(`crit_${k}`);
+    const on = !!cb?.checked;
+    document.querySelectorAll(`.crit-field[data-crit="${k}"]`).forEach(block => {
+      block.classList.toggle('hidden', !on);
+    });
+  });
+
+  // Rebuild custom neighborhood blocks so they match current criteria names + enabled keys
+  refreshCustomNeighborhoodBlocks();
+}
+
+/* -----------------------------
+   Slug + custom cities storage
+------------------------------*/
+function slugify(str) {
+  return (str || '')
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 32);
+}
+
+function loadCustomCities() {
+  try { return JSON.parse(localStorage.getItem('pnw_custom_cities') || '[]'); }
+  catch { return []; }
+}
+
+function saveCustomCities(list) {
+  localStorage.setItem('pnw_custom_cities', JSON.stringify(list));
+}
+
+/* -----------------------------
+   City scoring
+------------------------------*/
+function calculateCities() {
+  const enabled = enabledCriteriaKeys();
+
+  const cities = [
+    { name: 'Beaverton',    overall: 'b_overall',  incl: 'b_incl',  sped: 'b_sped',  house: 'b_house',  safe: 'b_safe',  c1:'b_c1',  c2:'b_c2' },
+    { name: 'Hillsboro',    overall: 'h_overall',  incl: 'h_incl',  sped: 'h_sped',  house: 'h_house',  safe: 'h_safe',  c1:'h_c1',  c2:'h_c2' },
+    { name: 'Vancouver',    overall: 'v_overall',  incl: 'v_incl',  sped: 'v_sped',  house: 'v_house',  safe: 'v_safe',  c1:'v_c1',  c2:'v_c2' },
+    { name: 'Tigard',       overall: 't_overall',  incl: 't_incl',  sped: 't_sped',  house: 't_house',  safe: 't_safe',  c1:'t_c1',  c2:'t_c2' },
+    { name: 'Sherwood',     overall: 's_overall',  incl: 's_incl',  sped: 's_sped',  house: 's_house',  safe: 's_safe',  c1:'s_c1',  c2:'s_c2' },
+    { name: 'Ridgefield',   overall: 'r_overall',  incl: 'r_incl',  sped: 'r_sped',  house: 'r_house',  safe: 'r_safe',  c1:'r_c1',  c2:'r_c2' },
+    { name: 'Forest Grove', overall: 'fg_overall', incl: 'fg_incl', sped: 'fg_sped', house: 'fg_house', safe: 'fg_safe', c1:'fg_c1', c2:'fg_c2' },
+    { name: 'Tualatin',     overall: 'tu_overall', incl: 'tu_incl', sped: 'tu_sped', house: 'tu_house', safe: 'tu_safe', c1:'tu_c1', c2:'tu_c2' }
+  ];
+
+  const val = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const n = parseInt(el.value, 10);
+    if (Number.isNaN(n) || n === 0) return null; // ignore 0
+    return n;
+  };
+
+
+  const wOverall = getWeight('overall');
+
+  const scores = cities.map(c => {
+    const overall = val(c.overall);
+
+    let sum = 0;
+    let wsum = 0;
+
+    // Overall always included
+    if (overall !== null) {
+      sum += overall * wOverall;
+      wsum += wOverall;
+    }
+
+    // Enabled criteria
+    enabled.forEach(k => {
+      const v = val(c[k]);
+      if (v !== null) {
+        const w = getWeight(k);
+        sum += v * w;
+        wsum += w;
+      }
+    });
+
+    const finalScore = wsum ? (sum / wsum) : 0;
+    return { name: c.name, score: finalScore };
+  }).sort((a, b) => b.score - a.score);
+
+  const bestScore = scores[0]?.score ?? 0;
+  const winners = scores.filter(s => s.score === bestScore).map(s => s.name);
+  const lines = scores.map(s => `${s.name}: ${s.score.toFixed(2)}`).join('\n');
+
+  const critLine =
+    `Overall feel (w=${wOverall})` +
+    (enabled.length ? '\n' + enabled.map(k => `${criteriaLabel(k)} (w=${getWeight(k)})`).join(' · ') : '');
+
+  document.getElementById('results').innerText =
+    `Weights used\n${critLine}\n\nCity averages (1–5)\n${lines}\n\nBest city: ${winners.join(', ')}`;
+}
+
+/* -----------------------------
+   Custom city + neighborhood UI
+------------------------------*/
+function refreshCustomUI() {
+  const custom = loadCustomCities();
+
+  // Populate city select
+  const sel = document.getElementById('customCitySelect');
+  if (sel) {
+    sel.innerHTML = '';
+    if (custom.length === 0) {
+      sel.innerHTML = `<option value="">(Add a city first)</option>`;
+    } else {
+      custom.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.key;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+    }
+  }
+
+  // Preview
+  const preview = document.getElementById('customListPreview');
+  if (preview) {
+    preview.innerHTML = custom.length === 0
+      ? 'No custom cities yet.'
+      : custom.map(c => `<strong>${c.name}</strong>: ${(c.neighborhoods || []).join(', ') || '—'}`).join('<br>');
+  }
+
+  refreshCustomNeighborhoodBlocks();
+  refreshQuickNotesUI();
+}
+
+function refreshCustomNeighborhoodBlocks() {
+  const custom = loadCustomCities();
+  const blocks = document.getElementById('customNeighborhoodBlocks');
+  if (!blocks) return;
+
+  const enabled = enabledCriteriaKeys();
+
+  // Build selects for enabled criteria (and always overall)
+  function scoreOptions() {
+    return `<option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>`;
+  }
+
+  blocks.innerHTML = '';
+
+  custom.forEach(city => {
+    (city.neighborhoods || []).forEach(n => {
+      const nKey = slugify(n);
+      const key = `${city.key}-${nKey}`;
+
+      // Each neighborhood: overall + enabled criteria
+      let html = `
+        <div>
+          <div class="city-title">${city.name} · ${n}</div>
+
+          <label>Overall feel</label>
+          <select data-city="custom" data-neighborhood="${key}" data-label="${city.name} · ${n}" data-field="overall">
+            ${scoreOptions()}
+          </select>
+      `;
+
+      enabled.forEach(k => {
+        html += `
+          <label data-crit-label="${k === 'c1' ? 'c1' : (k === 'c2' ? 'c2' : '')}">
+            ${criteriaLabel(k)}
+          </label>
+          <select data-city="custom" data-neighborhood="${key}" data-label="${city.name} · ${n}" data-field="${k}">
+            ${scoreOptions()}
+          </select>
+        `;
+      });
+
+      html += `</div>`;
+      blocks.insertAdjacentHTML('beforeend', html);
+    });
+  });
+
+  // Update custom labels for c1/c2 in this newly-built HTML
+  const names = getCustomNames();
+  document.querySelectorAll('[data-crit-label="c1"]').forEach(el => el.textContent = names.c1);
+  document.querySelectorAll('[data-crit-label="c2"]').forEach(el => el.textContent = names.c2);
+}
+
+function addCustomCity() {
+  const input = document.getElementById('customCityName');
+  const status = document.getElementById('customCityStatus');
+  const name = (input?.value || '').trim();
+
+  if (!name) { if (status) status.textContent = 'Please enter a city name.'; return; }
+
+  const list = loadCustomCities();
+  const key = slugify(name);
+
+  if (!key) { if (status) status.textContent = 'City name needs letters/numbers.'; return; }
+  if (list.some(c => c.key === key)) { if (status) status.textContent = 'That city already exists.'; return; }
+
+  list.push({ key, name, neighborhoods: [] });
+  saveCustomCities(list);
+
+  if (input) input.value = '';
+  if (status) status.textContent = `Added ${name}.`;
+
+  refreshCustomUI();
+}
+
+function addCustomNeighborhood() {
+  const cityKey = document.getElementById('customCitySelect')?.value;
+  const nInput = document.getElementById('customNeighborhoodName');
+  const status = document.getElementById('customNeighborhoodStatus');
+  const nName = (nInput?.value || '').trim();
+
+  if (!cityKey) { if (status) status.textContent = 'Choose a city first.'; return; }
+  if (!nName) { if (status) status.textContent = 'Enter a neighborhood name.'; return; }
+
+  const list = loadCustomCities();
+  const city = list.find(c => c.key === cityKey);
+  if (!city) { if (status) status.textContent = 'City not found.'; return; }
+
+  city.neighborhoods = city.neighborhoods || [];
+  if (city.neighborhoods.includes(nName)) { if (status) status.textContent = 'Neighborhood already added.'; return; }
+
+  city.neighborhoods.push(nName);
+  saveCustomCities(list);
+
+  if (nInput) nInput.value = '';
+  if (status) status.textContent = `Added "${nName}" to ${city.name}.`;
+
+  refreshCustomUI();
+}
+
+function clearCustomCities() {
+  localStorage.removeItem('pnw_custom_cities');
+  refreshCustomUI();
+}
+
+/* -----------------------------
+   Neighborhood scoring (custom only)
+------------------------------*/
+function calculateNeighborhoods() {
+  const selects = document.querySelectorAll(`#customNeighborhoodBlocks select[data-city="custom"]`);
+  if (!selects.length) {
+    document.getElementById('neighborhoodResults').innerText =
+      'No custom neighborhoods yet. Add a city + neighborhood above first.';
+    return;
+  }
+
+  const enabled = enabledCriteriaKeys();
+  const wOverall = getWeight('overall');
+
+  // bucket by neighborhoodKey
+  const buckets = {};
+  selects.forEach(sel => {
+    const nKey = sel.dataset.neighborhood;
+    const label = sel.dataset.label || nKey;
+    const field = sel.dataset.field;
+    const v = parseInt(sel.value, 10);
+    if (!nKey || Number.isNaN(v) || v === 0) return; // ignore 0
+
+
+    if (!buckets[nKey]) buckets[nKey] = { label, fields: {} };
+    buckets[nKey].fields[field] = v;
+  });
+
+  const rows = Object.values(buckets).map(b => {
+    let sum = 0, wsum = 0;
+
+    // Overall always included
+    const overall = b.fields.overall;
+    if (overall !== undefined) {
+      sum += overall * wOverall;
+      wsum += wOverall;
+    }
+
+    // Enabled criteria
+    enabled.forEach(k => {
+      const v = b.fields[k];
+      if (v !== undefined) {
+        const w = getWeight(k);
+        sum += v * w;
+        wsum += w;
+      }
+    });
+
+    const avg = wsum ? (sum / wsum) : 0;
+    return { label: b.label, avg };
+  }).sort((a, b) => b.avg - a.avg);
+
+  if (!rows.length) {
+    document.getElementById('neighborhoodResults').innerText = 'No neighborhood scores to calculate yet.';
+    return;
+  }
+
+  const lines = rows.map(r => `${r.label}: ${r.avg.toFixed(2)}`).join('\n');
+  const best = rows[0];
+
+  document.getElementById('neighborhoodResults').innerText =
+    `Neighborhood averages (1–5)\n${lines}\n\nBest neighborhood: ${best.label}`;
+}
+
+/* -----------------------------
+   Multi-family (kept as-is, but with no preloaded neighborhoods)
+------------------------------*/
+function getBaseCitiesForMultiFamily() {
+  return [
+    { key: 'beaverton',   name: 'Beaverton' },
+    { key: 'hillsboro',   name: 'Hillsboro' },
+    { key: 'vancouver',   name: 'Vancouver' },
+    { key: 'tigard',      name: 'Tigard' },
+    { key: 'sherwood',    name: 'Sherwood' },
+    { key: 'ridgefield',  name: 'Ridgefield' },
+    { key: 'forestgrove', name: 'Forest Grove' },
+    { key: 'tualatin',    name: 'Tualatin' }
+  ];
+}
+
+// (2) Removed predetermined neighborhoods: base cities return none
+function getNeighborhoodsForCity(cityKey) {
+  return []; // intentionally blank now
+}
+
+function getAllCitiesForMultiFamily() {
+  const base = getBaseCitiesForMultiFamily();
+
+  const custom = loadCustomCities().map(c => ({
+    key: `c_${c.key}`,
+    name: c.name,
+    _customKey: c.key,
+    _neighborhoods: c.neighborhoods || []
+  }));
+
+  return base.concat(custom);
+}
+
+function buildFamilyInputs() {
+  const container = document.getElementById('familyInputs');
+  const count = parseInt(document.getElementById('family_count')?.value, 10) || 1;
+  const cities = getAllCitiesForMultiFamily();
+
+  function scoreOptions() {
+  let html = '';
+  for (let i = 0; i <= 5; i++) html += `<option value="${i}">${i}</option>`;
+  return html;
+}
+
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (let f = 1; f <= count; f++) {
+    let block = `
+      <div class="card" style="margin-top:12px;">
+        <div class="card-header">
+          <div class="city-title">Family ${f}</div>
+          <span class="badge">Name + scores</span>
+        </div>
+
+        <div>
+          <label><strong>Family name (optional but helpful)</strong></label>
+          <input type="text" id="fam${f}_name" placeholder="e.g., Savage Family"
+                 style="width:100%; padding:6px 8px; border-radius:8px; border:1px solid #d4d4dd;">
+        </div>
+
+        <div class="section-title">Weights for this family (1–5)</div>
+        <div class="grid-4">
+          <div><label>Inclusivity weight</label><input type="number" id="fam${f}_w_incl" min="1" max="5" value="5" /></div>
+          <div><label>Schools weight</label><input type="number" id="fam${f}_w_sped" min="1" max="5" value="5" /></div>
+          <div><label>Housing weight</label><input type="number" id="fam${f}_w_house" min="1" max="5" value="4" /></div>
+          <div><label>Safety weight</label><input type="number" id="fam${f}_w_safe" min="1" max="5" value="4" /></div>
+        </div>
+
+        <div class="section-title">City scores for this family</div>
+        <p class="small">Overall feel is required. If category scores are filled, they will blend with the overall score.</p>
+
+        <div class="grid-3">
+    `;
+
+    cities.forEach(city => {
+      const neighborhoods = city.key.startsWith('c_')
+        ? (city._neighborhoods || [])
+        : getNeighborhoodsForCity(city.key);
+
+      block += `
+        <div>
+          <div class="city-title">${city.name}</div>
+
+          <label>Overall feel (1–5)</label>
+          <select id="fam${f}_${city.key}_overall">${scoreOptions()}</select>
+
+          <label class="small">Inclusivity (optional)</label>
+          <select id="fam${f}_${city.key}_incl">${scoreOptions()}</select>
+
+          <label class="small">Schools (optional)</label>
+          <select id="fam${f}_${city.key}_sped">${scoreOptions()}</select>
+
+          <label class="small">Housing (optional)</label>
+          <select id="fam${f}_${city.key}_house">${scoreOptions()}</select>
+
+          <label class="small">Safety (optional)</label>
+          <select id="fam${f}_${city.key}_safe">${scoreOptions()}</select>
+      `;
+
+      if (neighborhoods.length) {
+        block += `<div class="small" style="margin-top:8px;"><strong>Neighborhood overall (optional)</strong></div>`;
+        neighborhoods.forEach(nName => {
+          const nKey = slugify(nName);
+          block += `
+            <label class="small">${nName}</label>
+            <select id="fam${f}_${city.key}_n_${nKey}_overall">
+              ${scoreOptions(true)}
+            </select>
+          `;
+        });
+      }
+
+      block += `</div>`;
+    });
+
+    block += `
+        </div>
+      </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', block);
+  }
+}
+
+function calculateFamilies() {
+  const count = parseInt(document.getElementById('family_count')?.value, 10) || 1;
+  const cities = getAllCitiesForMultiFamily();
+
+  const cityTotals = {};
+  cities.forEach(c => (cityTotals[c.name] = 0));
+
+  const perFamilyScores = {};
+
+ function safeParseScore(val) {
+  const n = parseInt(val, 10);
+  if (Number.isNaN(n)) return null;
+  if (n === 0) return null; // 0 means "not rated yet"
+  return n;
+}
+
+
+  for (let f = 1; f <= count; f++) {
+    let fname = (document.getElementById(`fam${f}_name`)?.value || '').trim() || `Family ${f}`;
+    perFamilyScores[fname] = {};
+
+    const wIncl  = parseInt(document.getElementById(`fam${f}_w_incl`)?.value, 10)  || 1;
+    const wSped  = parseInt(document.getElementById(`fam${f}_w_sped`)?.value, 10)  || 1;
+    const wHouse = parseInt(document.getElementById(`fam${f}_w_house`)?.value, 10) || 1;
+    const wSafe  = parseInt(document.getElementById(`fam${f}_w_safe`)?.value, 10)  || 1;
+
+    cities.forEach(city => {
+      const overall = safeParseScore(document.getElementById(`fam${f}_${city.key}_overall`)?.value);
+      const incl    = safeParseScore(document.getElementById(`fam${f}_${city.key}_incl`)?.value);
+      const sped    = safeParseScore(document.getElementById(`fam${f}_${city.key}_sped`)?.value);
+      const house   = safeParseScore(document.getElementById(`fam${f}_${city.key}_house`)?.value);
+      const safe    = safeParseScore(document.getElementById(`fam${f}_${city.key}_safe`)?.value);
+
+      let sum = 0;
+      let weightSum = 0;
+
+      if (incl !== null)  { sum += incl  * wIncl;  weightSum += wIncl;  }
+      if (sped !== null)  { sum += sped  * wSped;  weightSum += wSped;  }
+      if (house !== null) { sum += house * wHouse; weightSum += wHouse; }
+      if (safe !== null)  { sum += safe  * wSafe;  weightSum += wSafe;  }
+
+      const categoryScore = weightSum > 0 ? (sum / weightSum) : null;
+
+      let finalScore = 0;
+      if (categoryScore !== null && overall !== null) finalScore = 0.7 * categoryScore + 0.3 * overall;
+      else if (categoryScore !== null) finalScore = categoryScore;
+      else if (overall !== null) finalScore = overall;
+
+      // Optional: blend neighborhood overall averages if provided (custom cities only)
+      const neighborhoods = city.key.startsWith('c_') ? (city._neighborhoods || []) : [];
+      let nSum = 0, nCount = 0;
+
+      neighborhoods.forEach(nName => {
+        const nKey = slugify(nName);
+        const nOverall = safeParseInt(
+          document.getElementById(`fam${f}_${city.key}_n_${nKey}_overall`)?.value
+        );
+        if (nOverall !== null) { nSum += nOverall; nCount += 1; }
+      });
+
+      if (nCount > 0) {
+        const nAvg = nSum / nCount;
+        finalScore = 0.75 * finalScore + 0.25 * nAvg;
+      }
+
+      cityTotals[city.name] += finalScore;
+      perFamilyScores[fname][city.name] = finalScore;
+    });
+  }
+
+  const cityAverages = {};
+  let maxAvg = -Infinity;
+  let winners = [];
+
+  Object.entries(cityTotals).forEach(([name, total]) => {
+    const avg = total / count;
+    cityAverages[name] = avg;
+
+    if (avg > maxAvg) { maxAvg = avg; winners = [name]; }
+    else if (avg === maxAvg) winners.push(name);
+  });
+
+  const cityLines = Object.entries(cityAverages)
+    .map(([name, avg]) => `${name}: ${avg.toFixed(2)}`)
+    .join('\n');
+
+  const familyLines = Object.entries(perFamilyScores)
+    .map(([fname, scores]) => {
+      const parts = cities.map(c => `${c.name}: ${scores[c.name]?.toFixed(2) ?? '—'}`);
+      return `${fname}: ${parts.join(' · ')}`;
+    })
+    .join('\n');
+
+  document.getElementById('familyResults').innerText =
+    `Family averages (1–5)\n${cityLines}\n\nPer-family scores\n${familyLines}\n\nBest collective fit: ${winners.join(', ')}`;
+}
+
+/* -----------------------------
+   Notes (unchanged)
+------------------------------*/
+function notesKeyForCity(cityKey) { return `pnw_notes_${cityKey}`; }
+function loadNote(cityKey) { return localStorage.getItem(notesKeyForCity(cityKey)) || ''; }
+function saveNote(cityKey, text) { localStorage.setItem(notesKeyForCity(cityKey), text || ''); }
+
+function getBaseCitiesForNotes() {
+  return [
+    { key: 'beaverton',   label: 'Beaverton' },
+    { key: 'hillsboro',   label: 'Hillsboro' },
+    { key: 'vancouver',   label: 'Vancouver' },
+    { key: 'tigard',      label: 'Tigard' },
+    { key: 'sherwood',    label: 'Sherwood' },
+    { key: 'ridgefield',  label: 'Ridgefield' },
+    { key: 'forestgrove', label: 'Forest Grove' },
+    { key: 'tualatin',    label: 'Tualatin' }
+  ];
+}
+
+function getAllCitiesForNotes() {
+  const base = getBaseCitiesForNotes();
+  const custom = loadCustomCities().map(c => ({ key: `c_${c.key}`, label: c.name }));
+  return base.concat(custom).concat([{ key: 'custom', label: 'Custom' }]);
+}
+
+function switchNotesCity(evt) {
+  const cityKey = evt.target.getAttribute('data-city');
+
+  document.querySelectorAll('.notes-tab-btn').forEach(btn => btn.classList.remove('active'));
+  evt.target.classList.add('active');
+
+  const cities = getAllCitiesForNotes();
+  cities.forEach(c => {
+    const panel = document.getElementById('notes-' + c.key);
+    if (panel) panel.classList.add('hidden');
+  });
+
+  const activePanel = document.getElementById('notes-' + cityKey);
+  if (activePanel) activePanel.classList.remove('hidden');
+}
+
+function refreshQuickNotesUI() {
+  const tabs = document.getElementById('notesTabs');
+  const panels = document.getElementById('notesPanels');
+  if (!tabs || !panels) return;
+
+  const cities = getAllCitiesForNotes();
+
+  const currentActiveBtn = tabs.querySelector('.notes-tab-btn.active');
+  let activeKey = currentActiveBtn?.getAttribute('data-city') || (cities[0]?.key || 'beaverton');
+  if (!cities.some(c => c.key === activeKey)) activeKey = cities[0]?.key || 'beaverton';
+
+  tabs.innerHTML = cities.map(c => {
+    const activeClass = (c.key === activeKey) ? 'active' : '';
+    return `<button type="button"
+                    class="notes-tab-btn ${activeClass}"
+                    data-city="${c.key}"
+                    onclick="switchNotesCity(event)">${c.label}</button>`;
+  }).join('');
+
+  panels.innerHTML = cities.map(c => {
+    const hiddenClass = (c.key === activeKey) ? '' : 'hidden';
+    const placeholder =
+      `Notes for ${c.label}...\n` +
+      `• School vibe / IEP impressions\n` +
+      `• Sensory environment (noise, traffic, crowding)\n` +
+      `• Did we feel safe being visibly queer/poly?\n` +
+      `• Where did the kids seem happiest?`;
+
+    return `
+      <div id="notes-${c.key}" class="notes-panel ${hiddenClass}">
+        <label class="small">Notes for ${c.label}</label>
+        <textarea id="notes_${c.key}" placeholder="${placeholder.replace(/"/g, '&quot;')}"></textarea>
+      </div>
+    `;
+  }).join('');
+
+  cities.forEach(c => {
+    const ta = document.getElementById(`notes_${c.key}`);
+    if (!ta) return;
+    ta.value = loadNote(c.key);
+    ta.addEventListener('input', () => saveNote(c.key, ta.value));
+  });
+}
+
+/* -----------------------------
+   (4) Export all data to a .txt note document
+------------------------------*/
+function exportAllDataTxt() {
+  const now = new Date();
+  const enabled = enabledCriteriaKeys();
+  const names = getCustomNames();
+
+  // City scores snapshot
+  const cityKeys = [
+    { key:'b', name:'Beaverton' },
+    { key:'h', name:'Hillsboro' },
+    { key:'v', name:'Vancouver' },
+    { key:'t', name:'Tigard' },
+    { key:'s', name:'Sherwood' },
+    { key:'r', name:'Ridgefield' },
+    { key:'fg', name:'Forest Grove' },
+    { key:'tu', name:'Tualatin' }
+  ];
+
+  function grab(id) {
+    const el = document.getElementById(id);
+    return el ? el.value : '';
+  }
+
+  let text = '';
+  text += `PNW Relocation Decision Tool – Export\n`;
+  text += `Exported: ${now.toLocaleString()}\n\n`;
+
+  text += `CRITERIA\n`;
+  text += `Enabled: ${enabled.map(k => criteriaLabel(k)).join(', ') || '(none)'}\n`;
+  text += `Custom names: c1="${names.c1}", c2="${names.c2}"\n`;
+  text += `Weights:\n`;
+  enabled.forEach(k => { text += `  - ${criteriaLabel(k)}: ${getWeight(k)}\n`; });
+  text += `\n`;
+  text += `  - Overall feel: ${getWeight('overall')}\n`;
+
+  text += `CITY SCORES\n`;
+  cityKeys.forEach(c => {
+    text += `\n${c.name}\n`;
+    text += `  Overall: ${grab(`${c.key}_overall`)}\n`;
+    enabled.forEach(k => {
+      text += `  ${criteriaLabel(k)}: ${grab(`${c.key}_${k}`)}\n`;
+    });
+  });
+  text += `\n\n`;
+
+  const custom = loadCustomCities();
+  text += `CUSTOM CITIES + NEIGHBORHOODS\n`;
+  if (!custom.length) text += `(none)\n`;
+  else {
+    custom.forEach(c => {
+      text += `- ${c.name}: ${(c.neighborhoods || []).join(', ') || '—'}\n`;
+    });
+  }
+  text += `\n`;
+
+  // Neighborhood scores snapshot
+  text += `NEIGHBORHOOD SCORES (custom)\n`;
+  const nSelects = document.querySelectorAll(`#customNeighborhoodBlocks select[data-city="custom"]`);
+  if (!nSelects.length) {
+    text += `(none)\n\n`;
+  } else {
+    const buckets = {};
+    nSelects.forEach(sel => {
+      const k = sel.dataset.neighborhood;
+      const label = sel.dataset.label || k;
+      const field = sel.dataset.field;
+      const v = sel.value;
+      if (!buckets[k]) buckets[k] = { label, fields:{} };
+      buckets[k].fields[field] = v;
+    });
+
+    Object.values(buckets).forEach(b => {
+      text += `\n${b.label}\n`;
+      text += `  Overall: ${b.fields.overall || ''}\n`;
+      enabled.forEach(k => {
+        text += `  ${criteriaLabel(k)}: ${b.fields[k] || ''}\n`;
+      });
+    });
+    text += `\n\n`;
+  }
+
+  // Notes snapshot
+  text += `NOTES\n`;
+  const noteCities = getAllCitiesForNotes();
+  noteCities.forEach(c => {
+    const note = loadNote(c.key);
+    if (note && note.trim()) {
+      text += `\n[${c.label}]\n${note.trim()}\n`;
+    }
+  });
+  text += `\n`;
+
+  // Multi-family snapshot (best-effort)
+  text += `MULTI-FAMILY (best-effort snapshot)\n`;
+  const famCount = document.getElementById('family_count')?.value || '';
+  text += `Families: ${famCount}\n`;
+  text += `(Tip: click "Add / Refresh Families" before exporting if you want those fields captured.)\n`;
+
+  // Download .txt
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pnw-relocation-notes-${now.toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* -----------------------------
+   Init + listeners
+------------------------------*/
+document.addEventListener('DOMContentLoaded', () => {
+  // criteria listeners
+  ['incl','sped','house','safe','c1','c2'].forEach(k => {
+    document.getElementById(`crit_${k}`)?.addEventListener('change', refreshCriteriaUI);
+  });
+  document.getElementById('c1_name')?.addEventListener('input', refreshCriteriaUI);
+  document.getElementById('c2_name')?.addEventListener('input', refreshCriteriaUI);
+
+  refreshCustomUI();
+  refreshCriteriaUI();
+});
+</script>
+
+</body>
+</html>
